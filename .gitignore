@@ -1,0 +1,70 @@
+# Node modules
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment files
+.env
+.env.local
+.env.*.local
+*.env
+
+# Build outputs
+build/
+dist/
+out/
+
+# Terraform
+*.tfstate
+*.tfstate.*
+*.tfvars
+.terraform/
+.terraform.lock.hcl
+terraform-outputs.json
+outputs.json
+tfplan
+
+# Kubernetes
+*.kubeconfig
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Credentials and secrets
+CREDENTIALS.txt
+*.pem
+*.key
+*.crt
+
+# Logs
+logs/
+*.log
+
+# Docker
+.dockerignore
+
+# AWS
+.aws/
+
+# Backup files
+*.bak
+*.backup
+
+# Coverage
+coverage/
+*.lcov
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+

@@ -1,0 +1,88 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: backend-monitor
+  namespace: task-manager
+  labels:
+    app: backend
+    release: prometheus
+spec:
+  selector:
+    matchLabels:
+      app: backend
+  endpoints:
+  - port: http
+    path: /metrics
+    interval: 30s
+    scrapeTimeout: 10s
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: backend-alerts
+  namespace: task-manager
+  labels:
+    app: backend
+    release: prometheus
+spec:
+  groups:
+  - name: backend
+    interval: 30s
+    rules:
+    - alert: BackendHighErrorRate
+      expr: |
+        sum(rate(http_requests_total{status_code=~"5..",app="backend"}[5m])) 
+        / 
+        sum(rate(http_requests_total{app="backend"}[5m])) > 0.05
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: "High error rate detected"
+        description: "Backend error rate is above 5% (current: {{ $value }})"
+    
+    - alert: BackendHighLatency
+      expr: |
+        histogram_quantile(0.95, 
+          sum(rate(http_request_duration_seconds_bucket{app="backend"}[5m])) by (le)
+        ) > 2
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: "High latency detected"
+        description: "95th percentile latency is above 2s (current: {{ $value }}s)"
+    
+    - alert: BackendDown
+      expr: up{app="backend"} == 0
+      for: 2m
+      labels:
+        severity: critical
+      annotations:
+        summary: "Backend is down"
+        description: "Backend has been down for more than 2 minutes"
+    
+    - alert: BackendHighMemoryUsage
+      expr: |
+        container_memory_usage_bytes{pod=~"backend-.*"} 
+        / 
+        container_spec_memory_limit_bytes{pod=~"backend-.*"} > 0.9
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: "High memory usage"
+        description: "Backend memory usage is above 90%"
+    
+    - alert: BackendHighCPUUsage
+      expr: |
+        rate(container_cpu_usage_seconds_total{pod=~"backend-.*"}[5m]) 
+        / 
+        container_spec_cpu_quota{pod=~"backend-.*"} > 0.9
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: "High CPU usage"
+        description: "Backend CPU usage is above 90%"
+
