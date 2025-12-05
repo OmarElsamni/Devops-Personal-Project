@@ -18,6 +18,10 @@ AWS_REGION=${AWS_REGION:-us-east-1}
 CLUSTER_NAME=${CLUSTER_NAME:-devops-task-manager}
 DB_PASSWORD=${DB_PASSWORD:-$(openssl rand -base64 32)}
 
+# Get AWS Account ID for unique bucket name
+AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+S3_BUCKET="devops-project-tf-state-${AWS_ACCOUNT_ID}"
+
 # Function to print colored output
 print_info() {
     echo -e "${GREEN}[INFO]${NC} $1"
@@ -42,15 +46,24 @@ command -v helm >/dev/null 2>&1 || { print_error "Helm is required but not insta
 print_info "All prerequisites satisfied!"
 
 # Step 1: Create S3 bucket for Terraform state
-print_info "Creating S3 bucket for Terraform state..."
-aws s3api create-bucket \
-    --bucket devops-project-terraform-state \
-    --region $AWS_REGION \
-    --create-bucket-configuration LocationConstraint=$AWS_REGION 2>/dev/null || print_warn "S3 bucket already exists"
+print_info "Creating S3 bucket for Terraform state: $S3_BUCKET"
 
+# Create bucket (different command for us-east-1)
+if [ "$AWS_REGION" = "us-east-1" ]; then
+    aws s3api create-bucket \
+        --bucket $S3_BUCKET \
+        --region $AWS_REGION 2>/dev/null || print_warn "S3 bucket already exists"
+else
+    aws s3api create-bucket \
+        --bucket $S3_BUCKET \
+        --region $AWS_REGION \
+        --create-bucket-configuration LocationConstraint=$AWS_REGION 2>/dev/null || print_warn "S3 bucket already exists"
+fi
+
+# Enable versioning
 aws s3api put-bucket-versioning \
-    --bucket devops-project-terraform-state \
-    --versioning-configuration Status=Enabled
+    --bucket $S3_BUCKET \
+    --versioning-configuration Status=Enabled 2>/dev/null || print_warn "Could not enable versioning"
 
 # Create DynamoDB table for state locking
 print_info "Creating DynamoDB table for state locking..."
@@ -65,7 +78,8 @@ aws dynamodb create-table \
 print_info "Initializing Terraform..."
 cd terraform
 
-terraform init
+# Initialize with backend configuration
+terraform init -backend-config="bucket=$S3_BUCKET"
 
 print_info "Planning Terraform changes..."
 terraform plan \
