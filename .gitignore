@@ -41,6 +41,8 @@ Thumbs.db
 
 # Credentials and secrets
 CREDENTIALS.txt
+SAVE_THIS_PASSWORD.txt
+PASSWORD.txt
 *.pem
 *.key
 *.crt

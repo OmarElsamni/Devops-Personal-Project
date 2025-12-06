@@ -65,7 +65,7 @@ alertmanager:
 
 grafana:
   enabled: true
-  adminPassword: "admin123"  # Change this in production
+  adminPassword: "CHANGE_ME_IN_PRODUCTION"  # ⚠️ Change this before deploying!
   
   persistence:
     enabled: true
