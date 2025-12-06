@@ -293,6 +293,7 @@ cd ..
 ./scripts/deploy-app.sh
 ```
 
+
 **Manual Deployment**:
 
 ```bash
