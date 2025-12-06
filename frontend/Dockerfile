@@ -31,8 +31,8 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
 # Create health endpoint
 RUN echo '{"status":"ok"}' > /usr/share/nginx/html/health
 
-# Expose port
-EXPOSE 80
+# Expose port 8080 (non-privileged)
+EXPOSE 8080
 
 # Start nginx
 CMD ["nginx", "-g", "daemon off;"]

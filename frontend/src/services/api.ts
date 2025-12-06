@@ -1,7 +1,8 @@
 import axios from 'axios';
 import { Task } from '../types';
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000/api';
+// Use relative path so nginx can proxy to backend
+const API_URL = process.env.REACT_APP_API_URL || '/api';
 
 const apiClient = axios.create({
   baseURL: API_URL,
